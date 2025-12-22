@@ -1,64 +1,147 @@
-#  Copyright (c) 2025. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-#  Morbi non lorem porttitor neque feugiat blandit. Ut vitae ipsum eget quam lacinia accumsan.
-#  Etiam sed turpis ac ipsum condimentum fringilla. Maecenas magna.
-#  Proin dapibus sapien vel ante. Aliquam erat volutpat. Pellentesque sagittis ligula eget metus.
-#  Vestibulum commodo. Ut rhoncus gravida arcu.
+"""
+REST Framework Serializers for Church ERP
+
+This module contains serializers for all models in the church ERP system.
+"""
 
 from rest_framework import serializers
-from .models import Genre, Artist, Album, Track, User, AdCampaign, Copyright, ServiceRequest
+from .models import (
+    ServiceRequest, SermonCategory, Sermon, SermonSeries, MediaItem,
+    Event, ImageGallery, GalleryImage, Form, FormSubmission, AdBanner,
+    User, FinancialCategory, Donation, Expense, Budget
+)
 
-class GenreSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Genre
-        fields = '__all__'
-
-class ArtistSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Artist
-        fields = ['id', 'name', 'bio', 'image', 'image_url']
-
-class AlbumSerializer(serializers.ModelSerializer):
-    artist = serializers.PrimaryKeyRelatedField(queryset=Artist.objects.all())
-    genre = serializers.PrimaryKeyRelatedField(many=True, queryset=Genre.objects.all())
-
-    class Meta:
-        model = Album
-        fields = ['id', 'title', 'artist', 'genre', 'release_date', 'cover_image', 'cover_image_url', 'copyright']
-
-class TrackSerializer(serializers.ModelSerializer):
-    album = serializers.PrimaryKeyRelatedField(queryset=Album.objects.all())
-    artist = serializers.PrimaryKeyRelatedField(queryset=Artist.objects.all())
-
-    class Meta:
-        model = Track
-        fields = ['id', 'title', 'album', 'artist', 'audio_file', 'duration', 'play_count', 
-                 'last_played', 'year', 'genre_tag', 'composer', 'track_number', 
-                 'bitrate', 'sample_rate', 'copyright']
-
-class UserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ['id', 'username', 'email', 'date_joined', 'agreed_to_terms', 
-                 'agreed_to_privacy', 'receive_marketing', 'agreement_date',
-                 'user_type', 'is_active', 'last_login']
-        extra_kwargs = {'password': {'write_only': True}}
-
-class AdCampaignSerializer(serializers.ModelSerializer):
-    user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
-    genre = serializers.PrimaryKeyRelatedField(queryset=Genre.objects.all())
-
-    class Meta:
-        model = AdCampaign
-        fields = ['id', 'title', 'description', 'video', 'video_url', 'genre', 
-                 'mood', 'target_audience', 'user', 'created_at']
-
-class CopyrightSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Copyright
-        fields = ['id', 'holder', 'license_type', 'license_url', 'credits', 
-                 'year', 'document', 'album', 'track']
 
 class ServiceRequestSerializer(serializers.ModelSerializer):
     class Meta:
         model = ServiceRequest
         fields = ['id', 'name', 'email', 'company', 'service_type', 'message', 'created_at']
+
+
+class SermonCategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SermonCategory
+        fields = '__all__'
+
+
+class SermonSerializer(serializers.ModelSerializer):
+    category = serializers.PrimaryKeyRelatedField(queryset=SermonCategory.objects.all(), required=False, allow_null=True)
+    sermon_series = serializers.PrimaryKeyRelatedField(queryset=SermonSeries.objects.all(), required=False, allow_null=True)
+
+    class Meta:
+        model = Sermon
+        fields = ['id', 'title', 'speaker', 'date', 'description', 'youtube_url', 'audio_file', 
+                 'pdf_file', 'image', 'image_url', 'category', 'sermon_series', 'view_count', 
+                 'last_viewed', 'created_at']
+
+
+class SermonSeriesSerializer(serializers.ModelSerializer):
+    category = serializers.PrimaryKeyRelatedField(queryset=SermonCategory.objects.all(), required=False, allow_null=True)
+
+    class Meta:
+        model = SermonSeries
+        fields = ['id', 'title', 'description', 'start_date', 'end_date', 'cover_image', 
+                 'cover_image_url', 'category']
+
+
+class MediaItemSerializer(serializers.ModelSerializer):
+    sermon = serializers.PrimaryKeyRelatedField(queryset=Sermon.objects.all(), required=False, allow_null=True)
+    event = serializers.PrimaryKeyRelatedField(queryset=Event.objects.all(), required=False, allow_null=True)
+
+    class Meta:
+        model = MediaItem
+        fields = ['id', 'title', 'description', 'file', 'file_type', 'sermon', 'event', 'created_at']
+
+
+class EventSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Event
+        fields = ['id', 'title', 'description', 'start_date', 'end_date', 'location', 'image', 
+                 'image_url', 'is_featured', 'registration_required', 'registration_url', 'created_at']
+
+
+class GalleryImageSerializer(serializers.ModelSerializer):
+    gallery = serializers.PrimaryKeyRelatedField(queryset=ImageGallery.objects.all())
+
+    class Meta:
+        model = GalleryImage
+        fields = ['id', 'gallery', 'image', 'caption', 'order', 'created_at']
+
+
+class ImageGallerySerializer(serializers.ModelSerializer):
+    images = GalleryImageSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = ImageGallery
+        fields = ['id', 'title', 'description', 'images', 'created_at']
+
+
+class FormSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Form
+        fields = ['id', 'title', 'description', 'form_type', 'is_active', 'created_at']
+
+
+class FormSubmissionSerializer(serializers.ModelSerializer):
+    form = serializers.PrimaryKeyRelatedField(queryset=Form.objects.all())
+    submitted_by = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), required=False, allow_null=True)
+
+    class Meta:
+        model = FormSubmission
+        fields = ['id', 'form', 'submitted_by', 'data', 'created_at']
+
+
+class AdBannerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AdBanner
+        fields = ['id', 'title', 'image', 'link_url', 'is_active', 'start_date', 'end_date', 
+                 'display_order', 'created_at']
+
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'date_joined', 
+                 'agreed_to_terms', 'agreed_to_privacy', 'receive_marketing', 'agreement_date',
+                 'user_type', 'is_active', 'last_login']
+        extra_kwargs = {'password': {'write_only': True}}
+
+
+# Financial Serializers
+
+class FinancialCategorySerializer(serializers.ModelSerializer):
+    parent = serializers.PrimaryKeyRelatedField(queryset=FinancialCategory.objects.all(), required=False, allow_null=True)
+
+    class Meta:
+        model = FinancialCategory
+        fields = ['id', 'name', 'description', 'category_type', 'parent']
+
+
+class DonationSerializer(serializers.ModelSerializer):
+    category = serializers.PrimaryKeyRelatedField(queryset=FinancialCategory.objects.all(), required=False, allow_null=True)
+    created_by = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), required=False, allow_null=True)
+
+    class Meta:
+        model = Donation
+        fields = ['id', 'donor_name', 'donor_email', 'amount', 'donation_date', 'payment_method', 
+                 'category', 'notes', 'is_recurring', 'created_at', 'created_by']
+
+
+class ExpenseSerializer(serializers.ModelSerializer):
+    category = serializers.PrimaryKeyRelatedField(queryset=FinancialCategory.objects.all(), required=False, allow_null=True)
+    created_by = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), required=False, allow_null=True)
+
+    class Meta:
+        model = Expense
+        fields = ['id', 'description', 'amount', 'expense_date', 'vendor', 'category', 'receipt', 
+                 'notes', 'created_at', 'created_by']
+
+
+class BudgetSerializer(serializers.ModelSerializer):
+    category = serializers.PrimaryKeyRelatedField(queryset=FinancialCategory.objects.all())
+    created_by = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), required=False, allow_null=True)
+
+    class Meta:
+        model = Budget
+        fields = ['id', 'name', 'category', 'amount', 'start_date', 'end_date', 'notes', 
+                 'created_at', 'created_by']

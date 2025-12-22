@@ -24,7 +24,7 @@ from django.conf.urls.i18n import i18n_patterns
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('music/', include('music_beta.urls')),
+    path('', include('music_beta.urls')),  # Changed from 'music/' to root
 ]
 
 # Add Django CMS URLs

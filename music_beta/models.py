@@ -1,3 +1,10 @@
+"""
+Church Financial ERP Models
+
+This module contains all models for the church financial ERP system.
+Transformed from music/artist portal to church management system.
+"""
+
 from django.db import models
 from django.utils import timezone
 from django.core.exceptions import ValidationError
@@ -7,55 +14,100 @@ import os
 import uuid
 
 
-def artist_image_path(instance, filename):
+def sermon_image_path(instance, filename):
     """
-    Generate a unique file path for artist images to avoid filename collisions.
+    Generate a unique file path for sermon images to avoid filename collisions.
 
     Args:
-        instance (Model instance): The Artist model instance.
+        instance (Model instance): The Sermon model instance.
         filename (str): The original filename of the uploaded image.
 
     Returns:
-        str: The file path with a UUID as filename inside 'artists' directory.
+        str: The file path with a UUID as filename inside 'sermons' directory.
     """
     ext = filename.split('.')[-1]
     filename = f"{uuid.uuid4()}.{ext}"
-    return os.path.join('artists', filename)
+    return os.path.join('sermons', filename)
 
 
-def album_cover_path(instance, filename):
+def sermon_series_cover_path(instance, filename):
     """
-    Generate a unique file path for album cover images.
+    Generate a unique file path for sermon series cover images.
 
     Args:
-        instance (Model instance): The Album model instance.
+        instance (Model instance): The SermonSeries model instance.
         filename (str): The original filename of the uploaded image.
 
     Returns:
-        str: The file path with a UUID as filename inside 'albums' directory.
+        str: The file path with a UUID as filename inside 'sermon_series' directory.
     """
     ext = filename.split('.')[-1]
     filename = f"{uuid.uuid4()}.{ext}"
-    return os.path.join('albums', filename)
+    return os.path.join('sermon_series', filename)
 
 
-def track_audio_path(instance, filename):
+def media_item_path(instance, filename):
     """
-    Generate a unique file path for track audio files.
+    Generate a unique file path for media items (PDFs, images, videos).
 
     Args:
-        instance (Model instance): The Track model instance.
-        filename (str): The original filename of the uploaded audio.
+        instance (Model instance): The MediaItem model instance.
+        filename (str): The original filename of the uploaded file.
 
     Returns:
-        str: The file path with a UUID as filename inside 'tracks' directory.
+        str: The file path with a UUID as filename inside 'media_items' directory.
     """
     ext = filename.split('.')[-1]
     filename = f"{uuid.uuid4()}.{ext}"
-    return os.path.join('tracks', filename)
+    return os.path.join('media_items', filename)
 
 
-# ad_video_path function removed as AdCampaign model is no longer needed
+def event_image_path(instance, filename):
+    """
+    Generate a unique file path for event images.
+
+    Args:
+        instance (Model instance): The Event model instance.
+        filename (str): The original filename of the uploaded image.
+
+    Returns:
+        str: The file path with a UUID as filename inside 'events' directory.
+    """
+    ext = filename.split('.')[-1]
+    filename = f"{uuid.uuid4()}.{ext}"
+    return os.path.join('events', filename)
+
+
+def ad_banner_path(instance, filename):
+    """
+    Generate a unique file path for advertising banner images.
+
+    Args:
+        instance (Model instance): The AdBanner model instance.
+        filename (str): The original filename of the uploaded image.
+
+    Returns:
+        str: The file path with a UUID as filename inside 'ad_banners' directory.
+    """
+    ext = filename.split('.')[-1]
+    filename = f"{uuid.uuid4()}.{ext}"
+    return os.path.join('ad_banners', filename)
+
+
+def gallery_image_path(instance, filename):
+    """
+    Generate a unique file path for gallery images.
+
+    Args:
+        instance (Model instance): The GalleryImage model instance.
+        filename (str): The original filename of the uploaded image.
+
+    Returns:
+        str: The file path with a UUID as filename inside 'gallery' directory.
+    """
+    ext = filename.split('.')[-1]
+    filename = f"{uuid.uuid4()}.{ext}"
+    return os.path.join('gallery', filename)
 
 
 class ServiceRequest(models.Model):
@@ -65,113 +117,131 @@ class ServiceRequest(models.Model):
     Fields:
         name (str): Name of the person making the request.
         email (str): Email address of the requester.
-        company (str): Company name of the requester.
+        company (str): Company/organization name of the requester.
         service_type (str): Type of service requested chosen from predefined options.
         message (str): Optional detailed message concerning the request.
         created_at (datetime): Timestamp when the request was created.
     """
     SERVICE_TYPE_CHOICES = [
-        ('media_solutions', 'Media Solutions'),
-        ('music_services', 'Music Services'),
+        ('ministry_support', 'Ministry Support'),
+        ('financial_assistance', 'Financial Assistance'),
+        ('event_planning', 'Event Planning'),
+        ('media_services', 'Media Services'),
+        ('other', 'Other'),
     ]
 
     name = models.CharField(max_length=100)
     email = models.EmailField()
-    company = models.CharField(max_length=100)
-    service_type = models.CharField(max_length=20, choices=SERVICE_TYPE_CHOICES)
+    company = models.CharField(max_length=100, blank=True)
+    service_type = models.CharField(max_length=30, choices=SERVICE_TYPE_CHOICES)
     message = models.TextField(blank=True)
     created_at = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
-        return f"{self.name} - {self.company} - {self.get_service_type_display()}"
+        return f"{self.name} - {self.get_service_type_display()}"
 
 
-class Genre(models.Model):
+class SermonCategory(models.Model):
     """
-    Represents a musical genre.
+    Represents a category for sermons (e.g., Sunday Service, Bible Study, Special Event).
 
     Fields:
-        name (str): The genre name (e.g. Rock, Jazz, Hip Hop).
+        name (str): The category name.
+        description (str): Optional description of the category.
     """
-    name = models.CharField(max_length=200, help_text='Enter a music genre (e.g. Rock, Jazz, Hip Hop)')
-    objects = None  # Placeholder - consider Django's default manager or custom managers as needed
+    name = models.CharField(max_length=200, help_text='Enter a sermon category (e.g., Sunday Service, Bible Study)')
+    description = models.TextField(blank=True, help_text='Optional description of the category')
 
     def __str__(self):
         return self.name
 
 
-class Artist(models.Model):
+class Sermon(models.Model):
     """
-    Represents a music artist with related information.
+    Represents a sermon with related information.
 
     Fields:
-        name (str): Artist's name.
-        bio (str): Short biography about the artist.
-        image (file): Image file representing the artist.
+        title (str): Sermon title.
+        speaker (str): Name of the speaker/preacher.
+        date (date): Date the sermon was delivered.
+        description (str): Description or notes about the sermon.
+        youtube_url (URLField): Optional YouTube video link.
+        audio_file (file): Optional audio file of the sermon.
+        pdf_file (file): Optional PDF file (bulletin, notes, etc.).
+        image (file): Optional image/thumbnail for the sermon.
+        category (ForeignKey): Category this sermon belongs to.
+        sermon_series (ForeignKey): Optional series this sermon belongs to.
+        view_count (int): Number of times the sermon has been viewed.
+        last_viewed (datetime): Last viewed timestamp.
     """
-    name = models.CharField(max_length=200, help_text='Enter the artist name')
-    bio = models.TextField(max_length=1000, help_text='Enter a brief bio of the artist', blank=True)
-    image = models.FileField(upload_to=artist_image_path, help_text='Artist image', blank=True, null=True)
+    title = models.CharField(max_length=200, help_text='Enter the sermon title')
+    speaker = models.CharField(max_length=200, help_text='Name of the speaker/preacher')
+    date = models.DateField(help_text='Date the sermon was delivered')
+    description = models.TextField(max_length=2000, help_text='Description or notes about the sermon', blank=True)
+    youtube_url = models.URLField(blank=True, null=True, help_text='YouTube video link (optional)')
+    audio_file = models.FileField(upload_to=media_item_path, help_text='Audio file (optional)', blank=True, null=True)
+    pdf_file = models.FileField(upload_to=media_item_path, help_text='PDF file - bulletin, notes, etc. (optional)', blank=True, null=True)
+    image = models.FileField(upload_to=sermon_image_path, help_text='Sermon image/thumbnail', blank=True, null=True)
+    category = models.ForeignKey(SermonCategory, on_delete=models.SET_NULL, null=True, blank=True, related_name='sermons')
+    sermon_series = models.ForeignKey('SermonSeries', on_delete=models.SET_NULL, null=True, blank=True, related_name='sermons')
+    view_count = models.IntegerField(default=0, help_text='Number of times the sermon has been viewed')
+    last_viewed = models.DateTimeField(null=True, blank=True, help_text='When the sermon was last viewed')
+    created_at = models.DateTimeField(default=timezone.now)
 
     @property
     def image_url(self):
         """
-        Returns the URL for the artist image.
+        Returns the URL for the sermon image.
         If no image is set or accessible, returns a fallback placeholder image URL.
 
         Returns:
-            str: URL to the artist image or a fallback image.
+            str: URL to the sermon image or a fallback image.
         """
         if self.image and hasattr(self.image, 'url'):
             try:
-                # Access URL to ensure file exists
                 _ = self.image.url
                 return self.image.url
             except Exception:
-                # Fall back to placeholder if image access fails
                 pass
-        # Fallback placeholder URL with random image keyed by artist id
         return f'https://picsum.photos/300?random={self.id}'
 
     def __str__(self):
-        return self.name
+        return f"{self.title} - {self.speaker} ({self.date})"
 
 
-class Album(models.Model):
+class SermonSeries(models.Model):
     """
-    Represents a music album by an artist.
+    Represents a series of sermons.
 
     Fields:
-        title (str): Album title.
-        artist (ForeignKey): Artist who created the album.
-        genre (ManyToMany): Genre(s) this album belongs to.
-        release_date (date): Date of album release.
-        cover_image (file): Cover image for the album.
+        title (str): Series title.
+        description (str): Description of the series.
+        start_date (date): Start date of the series.
+        end_date (date): End date of the series (optional).
+        cover_image (file): Cover image for the series.
+        category (ForeignKey): Category this series belongs to.
     """
-    title = models.CharField(max_length=200, help_text='Enter the album title')
-    artist = models.ForeignKey(Artist, on_delete=models.CASCADE, related_name='albums')
-    genre = models.ManyToManyField(Genre, help_text='Select a genre for this album')
-    release_date = models.DateField(null=True, blank=True)
-    cover_image = models.FileField(upload_to=album_cover_path, help_text='Album cover image', blank=True, null=True)
-    copyright = models.ForeignKey('Copyright', on_delete=models.SET_NULL, null=True, blank=True, related_name='albums')
-
-
+    title = models.CharField(max_length=200, help_text='Enter the series title')
+    description = models.TextField(blank=True, help_text='Description of the series')
+    start_date = models.DateField(null=True, blank=True)
+    end_date = models.DateField(null=True, blank=True)
+    cover_image = models.FileField(upload_to=sermon_series_cover_path, help_text='Series cover image', blank=True, null=True)
+    category = models.ForeignKey(SermonCategory, on_delete=models.SET_NULL, null=True, blank=True, related_name='series')
 
     @property
     def cover_image_url(self):
         """
-        Returns the URL for the album cover image.
+        Returns the URL for the series cover image.
         If no image is set or accessible, returns a fallback placeholder image URL.
 
         Returns:
-            str: URL to the album cover image or a fallback image.
+            str: URL to the series cover image or a fallback image.
         """
         if self.cover_image and hasattr(self.cover_image, 'url'):
             try:
                 _ = self.cover_image.url
                 return self.cover_image.url
             except Exception:
-                # TODO: Upload default fallback images for album covers
                 pass
         return f'https://picsum.photos/300?random={self.id}'
 
@@ -179,54 +249,202 @@ class Album(models.Model):
         return self.title
 
 
-class Track(models.Model):
+class MediaItem(models.Model):
     """
-    Represents an individual music track.
+    Represents a media item (PDF, image, video, etc.).
 
     Fields:
-        title (str): Track title.
-        album (ForeignKey): Album that the track belongs to.
-        artist (ForeignKey): Artist who performed the track.
-        audio_file (file): Audio file associated with the track.
-        duration (str): Length/duration of the track (e.g. "3:45").
-        play_count (int): Total number of times the track was played.
-        last_played (datetime): Last played timestamp.
-        year (str): Release year from ID3 metadata.
-        genre_tag (str): Genre tag from ID3 metadata.
-        composer (str): Composer info from ID3 metadata.
-        track_number (str): Track number from ID3 metadata.
-        bitrate (int): Bitrate of audio in kbps.
-        sample_rate (int): Sample rate of audio in Hz.
-        bpm (float): Beats per minute of the track.
-        key (str): Musical key of the track.
-        mood (str): Mood/emotion of the track from DEAM dataset.
+        title (str): Media item title.
+        description (str): Description of the media item.
+        file (file): The media file (PDF, image, video, etc.).
+        file_type (str): Type of file (pdf, image, video, audio).
+        sermon (ForeignKey): Optional sermon this media item is associated with.
+        event (ForeignKey): Optional event this media item is associated with.
+        created_at (datetime): When the media item was created.
     """
-    title = models.CharField(max_length=200, help_text='Enter the track title')
-    album = models.ForeignKey(Album, on_delete=models.CASCADE, related_name='tracks')
-    artist = models.ForeignKey(Artist, on_delete=models.CASCADE, related_name='tracks')
-    audio_file = models.FileField(upload_to=track_audio_path, help_text='Audio file', blank=True, null=True)
-    duration = models.CharField(max_length=10, help_text='Duration of the track (e.g. 3:45)', blank=True)
-    play_count = models.IntegerField(default=0, help_text='Number of times the track has been played')
-    last_played = models.DateTimeField(null=True, blank=True, help_text='When the track was last played')
+    FILE_TYPE_CHOICES = [
+        ('pdf', 'PDF'),
+        ('image', 'Image'),
+        ('video', 'Video'),
+        ('audio', 'Audio'),
+        ('other', 'Other'),
+    ]
 
-    # ID3 metadata fields
-    year = models.CharField(max_length=4, blank=True, null=True, help_text='Year of release')
-    genre_tag = models.CharField(max_length=100, blank=True, null=True, help_text='Genre from ID3 tag')
-    composer = models.CharField(max_length=200, blank=True, null=True, help_text='Composer from ID3 tag')
-    track_number = models.CharField(max_length=10, blank=True, null=True, help_text='Track number from ID3 tag')
-    bitrate = models.IntegerField(blank=True, null=True, help_text='Bitrate in kbps')
-    sample_rate = models.IntegerField(blank=True, null=True, help_text='Sample rate in Hz')
+    title = models.CharField(max_length=200, help_text='Enter the media item title')
+    description = models.TextField(blank=True, help_text='Description of the media item')
+    file = models.FileField(upload_to=media_item_path, help_text='Media file')
+    file_type = models.CharField(max_length=10, choices=FILE_TYPE_CHOICES, default='other')
+    sermon = models.ForeignKey(Sermon, on_delete=models.SET_NULL, null=True, blank=True, related_name='media_items')
+    event = models.ForeignKey('Event', on_delete=models.SET_NULL, null=True, blank=True, related_name='media_items')
+    created_at = models.DateTimeField(default=timezone.now)
 
-    # Audio analysis fields (from librosa)
-    bpm = models.FloatField(blank=True, null=True, help_text='Beats per minute')
-    key = models.CharField(max_length=10, blank=True, null=True, help_text='Musical key (e.g. C major, A minor)')
+    def __str__(self):
+        return self.title
 
-    # DEAM dataset mood field
-    # Placeholder for DEAM dataset integration
-    mood = models.CharField(max_length=100, blank=True, null=True, help_text='Mood/emotion from DEAM dataset')
 
-    # legal
-    copyright = models.ForeignKey('Copyright', on_delete=models.SET_NULL, null=True, blank=True, related_name='tracks')
+class Event(models.Model):
+    """
+    Represents a church event.
+
+    Fields:
+        title (str): Event title.
+        description (str): Description of the event.
+        start_date (datetime): Start date and time of the event.
+        end_date (datetime): End date and time of the event (optional).
+        location (str): Location of the event.
+        image (file): Optional image for the event.
+        is_featured (bool): Whether this event should be featured.
+        registration_required (bool): Whether registration is required.
+        registration_url (URLField): Optional registration URL.
+        created_at (datetime): When the event was created.
+    """
+    title = models.CharField(max_length=200, help_text='Enter the event title')
+    description = models.TextField(help_text='Description of the event')
+    start_date = models.DateTimeField(help_text='Start date and time of the event')
+    end_date = models.DateTimeField(null=True, blank=True, help_text='End date and time of the event (optional)')
+    location = models.CharField(max_length=200, help_text='Location of the event')
+    image = models.FileField(upload_to=event_image_path, help_text='Event image', blank=True, null=True)
+    is_featured = models.BooleanField(default=False, help_text='Whether this event should be featured')
+    registration_required = models.BooleanField(default=False, help_text='Whether registration is required')
+    registration_url = models.URLField(blank=True, null=True, help_text='Registration URL (optional)')
+    created_at = models.DateTimeField(default=timezone.now)
+
+    @property
+    def image_url(self):
+        """
+        Returns the URL for the event image.
+        If no image is set or accessible, returns a fallback placeholder image URL.
+
+        Returns:
+            str: URL to the event image or a fallback image.
+        """
+        if self.image and hasattr(self.image, 'url'):
+            try:
+                _ = self.image.url
+                return self.image.url
+            except Exception:
+                pass
+        return f'https://picsum.photos/300?random={self.id}'
+
+    def __str__(self):
+        return f"{self.title} - {self.start_date}"
+
+
+class ImageGallery(models.Model):
+    """
+    Represents an image gallery.
+
+    Fields:
+        title (str): Gallery title.
+        description (str): Description of the gallery.
+        created_at (datetime): When the gallery was created.
+    """
+    title = models.CharField(max_length=200, help_text='Enter the gallery title')
+    description = models.TextField(blank=True, help_text='Description of the gallery')
+    created_at = models.DateTimeField(default=timezone.now)
+
+    def __str__(self):
+        return self.title
+
+
+class GalleryImage(models.Model):
+    """
+    Represents an image in a gallery.
+
+    Fields:
+        gallery (ForeignKey): Gallery this image belongs to.
+        image (file): The image file.
+        caption (str): Optional caption for the image.
+        order (int): Display order within the gallery.
+        created_at (datetime): When the image was added.
+    """
+    gallery = models.ForeignKey(ImageGallery, on_delete=models.CASCADE, related_name='images')
+    image = models.FileField(upload_to=gallery_image_path, help_text='Gallery image')
+    caption = models.CharField(max_length=200, blank=True, help_text='Optional caption for the image')
+    order = models.IntegerField(default=0, help_text='Display order within the gallery')
+    created_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        ordering = ['order', 'created_at']
+
+    def __str__(self):
+        return f"{self.gallery.title} - Image {self.order}"
+
+
+class Form(models.Model):
+    """
+    Represents a form that can be filled out by users.
+
+    Fields:
+        title (str): Form title.
+        description (str): Description of the form.
+        form_type (str): Type of form (contact, registration, prayer_request, etc.).
+        is_active (bool): Whether the form is currently active.
+        created_at (datetime): When the form was created.
+    """
+    FORM_TYPE_CHOICES = [
+        ('contact', 'Contact Form'),
+        ('registration', 'Registration Form'),
+        ('prayer_request', 'Prayer Request'),
+        ('volunteer', 'Volunteer Application'),
+        ('donation', 'Donation Form'),
+        ('other', 'Other'),
+    ]
+
+    title = models.CharField(max_length=200, help_text='Enter the form title')
+    description = models.TextField(blank=True, help_text='Description of the form')
+    form_type = models.CharField(max_length=20, choices=FORM_TYPE_CHOICES, default='contact')
+    is_active = models.BooleanField(default=True, help_text='Whether the form is currently active')
+    created_at = models.DateTimeField(default=timezone.now)
+
+    def __str__(self):
+        return self.title
+
+
+class FormSubmission(models.Model):
+    """
+    Represents a submission of a form.
+
+    Fields:
+        form (ForeignKey): The form that was submitted.
+        submitted_by (ForeignKey): User who submitted the form (optional).
+        data (JSONField): Form submission data.
+        created_at (datetime): When the form was submitted.
+    """
+    form = models.ForeignKey(Form, on_delete=models.CASCADE, related_name='submissions')
+    submitted_by = models.ForeignKey('User', on_delete=models.SET_NULL, null=True, blank=True, related_name='form_submissions')
+    data = models.JSONField(default=dict, help_text='Form submission data')
+    created_at = models.DateTimeField(default=timezone.now)
+
+    def __str__(self):
+        return f"{self.form.title} - {self.created_at}"
+
+
+class AdBanner(models.Model):
+    """
+    Represents an advertising banner.
+
+    Fields:
+        title (str): Banner title.
+        image (file): Banner image.
+        link_url (URLField): Optional URL to link to when banner is clicked.
+        is_active (bool): Whether the banner is currently active.
+        start_date (date): Start date for displaying the banner.
+        end_date (date): End date for displaying the banner (optional).
+        display_order (int): Display order for multiple banners.
+        created_at (datetime): When the banner was created.
+    """
+    title = models.CharField(max_length=200, help_text='Enter the banner title')
+    image = models.FileField(upload_to=ad_banner_path, help_text='Banner image')
+    link_url = models.URLField(blank=True, null=True, help_text='URL to link to when banner is clicked (optional)')
+    is_active = models.BooleanField(default=True, help_text='Whether the banner is currently active')
+    start_date = models.DateField(default=timezone.now, help_text='Start date for displaying the banner')
+    end_date = models.DateField(null=True, blank=True, help_text='End date for displaying the banner (optional)')
+    display_order = models.IntegerField(default=0, help_text='Display order for multiple banners')
+    created_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        ordering = ['display_order', '-created_at']
 
     def __str__(self):
         return self.title
@@ -256,11 +474,12 @@ class User(AbstractUser):
         agreed_to_privacy (bool): Whether user agreed to privacy policy.
         receive_marketing (bool): Whether user opted to receive marketing emails.
         agreement_date (datetime): Timestamp when user agreed to terms/privacy policies.
-        user_type (str): Type of user - 'client' or 'artist'.
+        user_type (str): Type of user - 'member', 'staff', or 'admin'.
     """
     USER_TYPE_CHOICES = [
-        ('client', 'Client'),
-        ('artist', 'Artist'),
+        ('member', 'Member'),
+        ('staff', 'Staff'),
+        ('admin', 'Administrator'),
     ]
 
     # Make email required and unique
@@ -271,57 +490,126 @@ class User(AbstractUser):
     agreed_to_privacy = models.BooleanField(default=False, help_text='User has agreed to Privacy Policy')
     receive_marketing = models.BooleanField(default=False, help_text='User has opted in to marketing emails')
     agreement_date = models.DateTimeField(null=True, blank=True, help_text='When the user agreed to terms')
-    user_type = models.CharField(max_length=10, choices=USER_TYPE_CHOICES, default='client', 
-                                help_text='Type of user - client or artist')
+    user_type = models.CharField(max_length=10, choices=USER_TYPE_CHOICES, default='member', 
+                                help_text='Type of user - member, staff, or admin')
 
 
-# AdCampaign model removed as per requirements - users only need to browse music
+# Financial Models
 
-
-# TODO: add copyright class to models.py for copyright / license of current track / album
-    # want to view credits, etc.
-class Copyright(models.Model):
+class FinancialCategory(models.Model):
     """
-    Represents copyright and licensing information for a track or album.
-
-    Copyright always belongs to the organization.
-    """
-    # Default holder is the organization
-    holder = models.CharField(max_length=200, default="TFN Music", 
-                             help_text='Name of copyright holder (always our organization)')
-    license_type = models.CharField(max_length=200, help_text='License type (e.g. Creative Commons)')
-    license_url = models.URLField(blank=True, null=True, help_text='Link to the license or terms')
-    credits = models.TextField(blank=True, null=True, help_text='Credits/notes related to authorship, contributors, etc.')
-    year = models.PositiveIntegerField(default=timezone.now().year, 
-                                      help_text='Copyright or License Year')
-    document = models.FileField(upload_to='copyright_docs/', blank=True, null=True,
-                                help_text="Upload copyright/license document PDF")
-
-    # relationships / foreign keys. One track can have one copyright. One album can have one copyright (one to one)
-    album = models.ForeignKey(Album, on_delete=models.SET_NULL, null=True, blank=True, related_name='copyrights')
-    track = models.ForeignKey(Track, on_delete=models.SET_NULL, null=True, blank=True, related_name='copyrights')
-
-    def __str__(self):
-        return f"{self.holder} ({self.year or 'Year Unknown'}) - {self.license_type or 'License Info'}"
-
-
-# ClientCampaign model removed as per requirements - users only need to browse music
-
-
-class Cart(models.Model):
-    """
-    Represents a client's shopping cart for tracks.
+    Represents a category for financial transactions (income or expense).
 
     Fields:
-        user (ForeignKey): The client user who owns this cart.
-        tracks (ManyToManyField): Tracks in the cart.
-        created_at (DateTimeField): When the cart was created.
-        updated_at (DateTimeField): When the cart was last updated.
+        name (str): Category name.
+        description (str): Optional description.
+        category_type (str): 'income' or 'expense'.
+        parent (ForeignKey): Optional parent category for hierarchical organization.
     """
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='cart')
-    tracks = models.ManyToManyField(Track, related_name='in_carts', blank=True)
-    created_at = models.DateTimeField(default=timezone.now)
-    updated_at = models.DateTimeField(auto_now=True)
+    CATEGORY_TYPE_CHOICES = [
+        ('income', 'Income'),
+        ('expense', 'Expense'),
+    ]
+
+    name = models.CharField(max_length=200, help_text='Category name')
+    description = models.TextField(blank=True, help_text='Optional description')
+    category_type = models.CharField(max_length=10, choices=CATEGORY_TYPE_CHOICES, help_text='Income or Expense')
+    parent = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='children')
 
     def __str__(self):
-        return f"{self.user.username}'s Cart"
+        return f"{self.get_category_type_display()} - {self.name}"
+
+
+class Donation(models.Model):
+    """
+    Represents a donation/contribution.
+
+    Fields:
+        donor_name (str): Name of the donor.
+        donor_email (EmailField): Email of the donor (optional).
+        amount (Decimal): Donation amount.
+        donation_date (date): Date of the donation.
+        payment_method (str): Method of payment (cash, check, card, online, etc.).
+        category (ForeignKey): Financial category for this donation.
+        notes (str): Optional notes about the donation.
+        is_recurring (bool): Whether this is a recurring donation.
+        created_at (datetime): When the donation record was created.
+        created_by (ForeignKey): User who created this record.
+    """
+    PAYMENT_METHOD_CHOICES = [
+        ('cash', 'Cash'),
+        ('check', 'Check'),
+        ('card', 'Credit/Debit Card'),
+        ('online', 'Online Payment'),
+        ('other', 'Other'),
+    ]
+
+    donor_name = models.CharField(max_length=200, help_text='Name of the donor')
+    donor_email = models.EmailField(blank=True, null=True, help_text='Email of the donor (optional)')
+    amount = models.DecimalField(max_digits=10, decimal_places=2, help_text='Donation amount')
+    donation_date = models.DateField(default=timezone.now, help_text='Date of the donation')
+    payment_method = models.CharField(max_length=20, choices=PAYMENT_METHOD_CHOICES, default='cash')
+    category = models.ForeignKey(FinancialCategory, on_delete=models.SET_NULL, null=True, blank=True, related_name='donations')
+    notes = models.TextField(blank=True, help_text='Optional notes about the donation')
+    is_recurring = models.BooleanField(default=False, help_text='Whether this is a recurring donation')
+    created_at = models.DateTimeField(default=timezone.now)
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='donations_created')
+
+    def __str__(self):
+        return f"{self.donor_name} - ${self.amount} - {self.donation_date}"
+
+
+class Expense(models.Model):
+    """
+    Represents an expense.
+
+    Fields:
+        description (str): Description of the expense.
+        amount (Decimal): Expense amount.
+        expense_date (date): Date of the expense.
+        vendor (str): Vendor/supplier name (optional).
+        category (ForeignKey): Financial category for this expense.
+        receipt (file): Optional receipt file.
+        notes (str): Optional notes about the expense.
+        created_at (datetime): When the expense record was created.
+        created_by (ForeignKey): User who created this record.
+    """
+    description = models.CharField(max_length=200, help_text='Description of the expense')
+    amount = models.DecimalField(max_digits=10, decimal_places=2, help_text='Expense amount')
+    expense_date = models.DateField(default=timezone.now, help_text='Date of the expense')
+    vendor = models.CharField(max_length=200, blank=True, help_text='Vendor/supplier name (optional)')
+    category = models.ForeignKey(FinancialCategory, on_delete=models.SET_NULL, null=True, blank=True, related_name='expenses')
+    receipt = models.FileField(upload_to='expense_receipts/', blank=True, null=True, help_text='Optional receipt file')
+    notes = models.TextField(blank=True, help_text='Optional notes about the expense')
+    created_at = models.DateTimeField(default=timezone.now)
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='expenses_created')
+
+    def __str__(self):
+        return f"{self.description} - ${self.amount} - {self.expense_date}"
+
+
+class Budget(models.Model):
+    """
+    Represents a budget for a specific period and category.
+
+    Fields:
+        name (str): Budget name/description.
+        category (ForeignKey): Financial category this budget is for.
+        amount (Decimal): Budgeted amount.
+        start_date (date): Start date of the budget period.
+        end_date (date): End date of the budget period.
+        notes (str): Optional notes about the budget.
+        created_at (datetime): When the budget was created.
+        created_by (ForeignKey): User who created this budget.
+    """
+    name = models.CharField(max_length=200, help_text='Budget name/description')
+    category = models.ForeignKey(FinancialCategory, on_delete=models.CASCADE, related_name='budgets')
+    amount = models.DecimalField(max_digits=10, decimal_places=2, help_text='Budgeted amount')
+    start_date = models.DateField(help_text='Start date of the budget period')
+    end_date = models.DateField(help_text='End date of the budget period')
+    notes = models.TextField(blank=True, help_text='Optional notes about the budget')
+    created_at = models.DateTimeField(default=timezone.now)
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='budgets_created')
+
+    def __str__(self):
+        return f"{self.name} - ${self.amount} ({self.start_date} to {self.end_date})"

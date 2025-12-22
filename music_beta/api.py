@@ -1,47 +1,122 @@
-#  Copyright (c) 2025. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-#  Morbi non lorem porttitor neque feugiat blandit. Ut vitae ipsum eget quam lacinia accumsan.
-#  Etiam sed turpis ac ipsum condimentum fringilla. Maecenas magna.
-#  Proin dapibus sapien vel ante. Aliquam erat volutpat. Pellentesque sagittis ligula eget metus.
-#  Vestibulum commodo. Ut rhoncus gravida arcu.
+"""
+REST Framework API Viewsets for Church ERP
+
+This module contains API endpoints for all models in the church ERP system.
+"""
 
 from rest_framework import viewsets, permissions
-from .models import Genre, Artist, Album, Track, User, AdCampaign, Copyright, ServiceRequest
+from .models import (
+    ServiceRequest, SermonCategory, Sermon, SermonSeries, MediaItem,
+    Event, ImageGallery, GalleryImage, Form, FormSubmission, AdBanner,
+    User, FinancialCategory, Donation, Expense, Budget
+)
 from .serializers import (
-    GenreSerializer, ArtistSerializer, AlbumSerializer, TrackSerializer,
-    UserSerializer, AdCampaignSerializer, CopyrightSerializer, ServiceRequestSerializer
+    ServiceRequestSerializer, SermonCategorySerializer, SermonSerializer, 
+    SermonSeriesSerializer, MediaItemSerializer, EventSerializer,
+    ImageGallerySerializer, GalleryImageSerializer, FormSerializer,
+    FormSubmissionSerializer, AdBannerSerializer, UserSerializer,
+    FinancialCategorySerializer, DonationSerializer, ExpenseSerializer, BudgetSerializer
 )
 
-class GenreViewSet(viewsets.ModelViewSet):
+
+class ServiceRequestViewSet(viewsets.ModelViewSet):
     """
-    API endpoint that allows genres to be viewed or edited.
+    API endpoint that allows service requests to be viewed or edited.
     """
-    queryset = Genre.objects.all()
-    serializer_class = GenreSerializer
+    queryset = ServiceRequest.objects.all()
+    serializer_class = ServiceRequestSerializer
+    permission_classes = [permissions.IsAdminUser]
+
+
+class SermonCategoryViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows sermon categories to be viewed or edited.
+    """
+    queryset = SermonCategory.objects.all()
+    serializer_class = SermonCategorySerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
-class ArtistViewSet(viewsets.ModelViewSet):
+
+class SermonViewSet(viewsets.ModelViewSet):
     """
-    API endpoint that allows artists to be viewed or edited.
+    API endpoint that allows sermons to be viewed or edited.
     """
-    queryset = Artist.objects.all()
-    serializer_class = ArtistSerializer
+    queryset = Sermon.objects.all()
+    serializer_class = SermonSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
-class AlbumViewSet(viewsets.ModelViewSet):
+
+class SermonSeriesViewSet(viewsets.ModelViewSet):
     """
-    API endpoint that allows albums to be viewed or edited.
+    API endpoint that allows sermon series to be viewed or edited.
     """
-    queryset = Album.objects.all()
-    serializer_class = AlbumSerializer
+    queryset = SermonSeries.objects.all()
+    serializer_class = SermonSeriesSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
-class TrackViewSet(viewsets.ModelViewSet):
+
+class MediaItemViewSet(viewsets.ModelViewSet):
     """
-    API endpoint that allows tracks to be viewed or edited.
+    API endpoint that allows media items to be viewed or edited.
     """
-    queryset = Track.objects.all()
-    serializer_class = TrackSerializer
+    queryset = MediaItem.objects.all()
+    serializer_class = MediaItemSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+
+class EventViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows events to be viewed or edited.
+    """
+    queryset = Event.objects.all()
+    serializer_class = EventSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+
+class ImageGalleryViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows image galleries to be viewed or edited.
+    """
+    queryset = ImageGallery.objects.all()
+    serializer_class = ImageGallerySerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+
+class GalleryImageViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows gallery images to be viewed or edited.
+    """
+    queryset = GalleryImage.objects.all()
+    serializer_class = GalleryImageSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+
+class FormViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows forms to be viewed or edited.
+    """
+    queryset = Form.objects.all()
+    serializer_class = FormSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+
+class FormSubmissionViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows form submissions to be viewed or edited.
+    """
+    queryset = FormSubmission.objects.all()
+    serializer_class = FormSubmissionSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+
+class AdBannerViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows ad banners to be viewed or edited.
+    """
+    queryset = AdBanner.objects.filter(is_active=True)
+    serializer_class = AdBannerSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
 
 class UserViewSet(viewsets.ModelViewSet):
     """
@@ -59,9 +134,13 @@ class UserViewSet(viewsets.ModelViewSet):
         if not user_id:
             return User.objects.none()
 
-        # Check if user is admin (for simplicity, we're just checking if user_id is 1)
-        if user_id == 1:
-            return User.objects.all()
+        # Check if user is admin
+        try:
+            user = User.objects.get(id=user_id)
+            if user.is_staff or user.is_superuser or user.user_type == 'admin':
+                return User.objects.all()
+        except User.DoesNotExist:
+            pass
 
         # Regular users can only see their own data
         return User.objects.filter(id=user_id)
@@ -76,26 +155,97 @@ class UserViewSet(viewsets.ModelViewSet):
             return [permissions.IsAuthenticated()]
         return [permissions.IsAdminUser()]
 
-class AdCampaignViewSet(viewsets.ModelViewSet):
+
+# Financial ViewSets
+
+class FinancialCategoryViewSet(viewsets.ModelViewSet):
     """
-    API endpoint that allows ad campaigns to be viewed or edited.
+    API endpoint that allows financial categories to be viewed or edited.
     """
-    queryset = AdCampaign.objects.all()
-    serializer_class = AdCampaignSerializer
+    queryset = FinancialCategory.objects.all()
+    serializer_class = FinancialCategorySerializer
     permission_classes = [permissions.IsAuthenticated]
 
-class CopyrightViewSet(viewsets.ModelViewSet):
-    """
-    API endpoint that allows copyright information to be viewed or edited.
-    """
-    queryset = Copyright.objects.all()
-    serializer_class = CopyrightSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
-class ServiceRequestViewSet(viewsets.ModelViewSet):
+class DonationViewSet(viewsets.ModelViewSet):
     """
-    API endpoint that allows service requests to be viewed or edited.
+    API endpoint that allows donations to be viewed or edited.
     """
-    queryset = ServiceRequest.objects.all()
-    serializer_class = ServiceRequestSerializer
-    permission_classes = [permissions.IsAdminUser]
+    queryset = Donation.objects.all()
+    serializer_class = DonationSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        """
+        Filter queryset based on user permissions.
+        Staff and admins can see all donations, members can only see their own.
+        """
+        user_id = self.request.session.get('user_id')
+        if not user_id:
+            return Donation.objects.none()
+
+        try:
+            user = User.objects.get(id=user_id)
+            if user.is_staff or user.is_superuser or user.user_type in ['admin', 'staff']:
+                return Donation.objects.all()
+        except User.DoesNotExist:
+            pass
+
+        # Members can only see donations they created
+        return Donation.objects.filter(created_by_id=user_id)
+
+
+class ExpenseViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows expenses to be viewed or edited.
+    """
+    queryset = Expense.objects.all()
+    serializer_class = ExpenseSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        """
+        Filter queryset based on user permissions.
+        Staff and admins can see all expenses, members can only see their own.
+        """
+        user_id = self.request.session.get('user_id')
+        if not user_id:
+            return Expense.objects.none()
+
+        try:
+            user = User.objects.get(id=user_id)
+            if user.is_staff or user.is_superuser or user.user_type in ['admin', 'staff']:
+                return Expense.objects.all()
+        except User.DoesNotExist:
+            pass
+
+        # Members can only see expenses they created
+        return Expense.objects.filter(created_by_id=user_id)
+
+
+class BudgetViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows budgets to be viewed or edited.
+    """
+    queryset = Budget.objects.all()
+    serializer_class = BudgetSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        """
+        Filter queryset based on user permissions.
+        Only staff and admins can view budgets.
+        """
+        user_id = self.request.session.get('user_id')
+        if not user_id:
+            return Budget.objects.none()
+
+        try:
+            user = User.objects.get(id=user_id)
+            if user.is_staff or user.is_superuser or user.user_type in ['admin', 'staff']:
+                return Budget.objects.all()
+        except User.DoesNotExist:
+            pass
+
+        # Members cannot view budgets
+        return Budget.objects.none()
