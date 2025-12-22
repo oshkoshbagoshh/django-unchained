@@ -13,11 +13,9 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 from pathlib import Path
 import os
 
-import dotenv
-from dotenv import load_dotenv
-
 # Load environment variables from .env file
 try:
+    from dotenv import load_dotenv
     load_dotenv()
 except ImportError:
     pass
@@ -50,8 +48,8 @@ else:
 # Application definition
 
 INSTALLED_APPS = [
-    # Django CMS admin style
-    'djangocms_admin_style',
+    # Django CMS admin style (commented out - install django-cms packages to enable)
+    # 'djangocms_admin_style',
 
     # Django core apps
     'django.contrib.admin',
@@ -62,20 +60,20 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.sites',
 
-    # Django CMS core apps
-    'cms',
-    'menus',
-    'treebeard',
-    'sekizai',
+    # Django CMS core apps (commented out - install django-cms packages to enable)
+    # 'cms',
+    # 'menus',
+    # 'treebeard',
+    # 'sekizai',
 
-    # Django CMS plugins
-    'djangocms_text_ckeditor',
-    'djangocms_link',
-    'djangocms_file',
-    'djangocms_picture',
-    'djangocms_video',
-    'djangocms_style',
-    'djangocms_audio',
+    # Django CMS plugins (commented out - install django-cms packages to enable)
+    # 'djangocms_text_ckeditor',
+    # 'djangocms_link',
+    # 'djangocms_file',
+    # 'djangocms_picture',
+    # 'djangocms_video',
+    # 'djangocms_style',
+    # 'djangocms_audio',
 
     # Project apps
     'music_beta.apps.MusicBetaConfig',
@@ -86,16 +84,19 @@ INSTALLED_APPS = [
 ]
 
 # Django CMS settings
-SITE_ID = 1
+# SITE_ID = 1
 
-CMS_TEMPLATES = [
-    ('cms_home.html', 'Home Template'),
-    ('cms_page.html', 'Content Page'),
-    ('cms_sidebar.html', 'Page with Sidebar'),
-]
+# CMS_TEMPLATES = [
+#     ('cms_home.html', 'Home Template'),
+#     ('cms_page.html', 'Content Page'),
+#     ('cms_sidebar.html', 'Page with Sidebar'),
+# ]
 
-CMS_PERMISSION = True
-CMS_PLACEHOLDER_CONF = {}
+# CMS_PERMISSION = True
+# CMS_PLACEHOLDER_CONF = {}
+
+
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -109,11 +110,11 @@ MIDDLEWARE = [
     'tfn_ctv.rate_limiting.RateLimitMiddleware',
 
     # Django CMS middleware
-    'django.middleware.locale.LocaleMiddleware',
-    'cms.middleware.user.CurrentUserMiddleware',
-    'cms.middleware.page.CurrentPageMiddleware',
-    'cms.middleware.toolbar.ToolbarMiddleware',
-    'cms.middleware.language.LanguageCookieMiddleware',
+    # 'django.middleware.locale.LocaleMiddleware',
+    # 'cms.middleware.user.CurrentUserMiddleware',
+    # 'cms.middleware.page.CurrentPageMiddleware',
+    # 'cms.middleware.toolbar.ToolbarMiddleware',
+    # 'cms.middleware.language.LanguageCookieMiddleware',
 ]
 
 ROOT_URLCONF = 'tfn_ctv.urls'
@@ -134,7 +135,7 @@ TEMPLATES = [
                 'django.template.context_processors.csrf',
                 'django.template.context_processors.static',
                 'sekizai.context_processors.sekizai',
-                'cms.context_processors.cms_settings',
+                # 'cms.context_processors.cms_settings',
             ],
         },
     },
