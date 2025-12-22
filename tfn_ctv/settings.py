@@ -78,8 +78,8 @@ INSTALLED_APPS = [
     # Project apps
     'music_beta.apps.MusicBetaConfig',
     'artist_portal.apps.ArtistPortalConfig',
-    'whitenoise.runserver_nostatic',
-    'bootstrap5',
+    # 'whitenoise.runserver_nostatic',  # Commented out - install whitenoise to enable
+    # 'bootstrap5',  # Commented out - install django-bootstrap5 to enable
     'rest_framework',
 ]
 
@@ -106,7 +106,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
+    # 'whitenoise.middleware.WhiteNoiseMiddleware',  # Commented out - install whitenoise to enable
     'tfn_ctv.rate_limiting.RateLimitMiddleware',
 
     # Django CMS middleware
@@ -134,8 +134,8 @@ TEMPLATES = [
                 'django.template.context_processors.media',
                 'django.template.context_processors.csrf',
                 'django.template.context_processors.static',
-                'sekizai.context_processors.sekizai',
-                # 'cms.context_processors.cms_settings',
+                # 'sekizai.context_processors.sekizai',  # Django CMS - commented out
+                # 'cms.context_processors.cms_settings',  # Django CMS - commented out
             ],
         },
     },

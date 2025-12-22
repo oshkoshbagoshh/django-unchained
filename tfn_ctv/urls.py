@@ -27,10 +27,10 @@ urlpatterns = [
     path('', include('music_beta.urls')),  # Changed from 'music/' to root
 ]
 
-# Add Django CMS URLs
-urlpatterns += i18n_patterns(
-    re_path(r'^', include('cms.urls')),
-)
+# Add Django CMS URLs (commented out - install django-cms packages to enable)
+# urlpatterns += i18n_patterns(
+#     re_path(r'^', include('cms.urls')),
+# )
 
 # Add static and media URL mappings in development
 if settings.DEBUG:
